@@ -1,0 +1,33 @@
+service: nukonuko
+
+provider:
+  name: aws
+  region: ap-northeast-1
+  stage: prd
+  runtime: python3.7
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+      Resource: !Join
+          - ':'
+          - - 'arn:aws:lambda'
+            - ${self:provider.region}
+            - !Ref AWS::AccountId
+            - 'function:*'
+
+functions:
+  nukonuko:
+    name: nukonuko
+    handler: handler.main
+    timeout: 30
+    environment:
+      calc: ${self:custom.function_name.calc}
+      choice: ${self:custom.function_name.choice}
+    events:
+    - http:
+        path: /
+        method: post
+
+custom:
+  function_name: ${file(./config.yml):function_name}
